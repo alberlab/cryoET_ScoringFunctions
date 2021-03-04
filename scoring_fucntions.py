@@ -4,6 +4,7 @@ import numpy.fft as NF
 from random import randrange
 from scipy.stats import pearsonr
 from scipy.ndimage.filters import gaussian_filter as SNFG
+import sys, getopt, json
 
 def get_mrc(filename):
     assert os.path.isfile(filename)
@@ -152,6 +153,8 @@ def sfsc(particles, masks, gf, mask_cutoff=0.5):
         
         del vr, vm
         gc.collect()
+        print("Number of subtomograms loaded:", i, end="\r")
+    print("\n")
     
     fsc = ssnr__given_stat(sum_v=sum_v, prod_sum=prod_sum_v, mask_sum=mask_sum)
     sfsc = sum(fsc.tolist())
@@ -302,7 +305,7 @@ def MI(v1, v2, layers1=20, layers2=20, mask_array=None, normalised=False):
     else:
         return Hx_ + Hy_ - Hxy_
 
-def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_cutoff=0.5):
+def compute_scores(particles, masks, outFile, gaussian_filter_sigma=0, score="all", mask_cutoff=0.5):
     '''
     Compute the scoring functions for the set of subtomograms provided in the arguement
     
@@ -318,15 +321,19 @@ def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_
     Dictionary of scoring function acronym and score value
     '''
 
-    ## Normalize each subtomogram
     assert len(particles)>1
     scoreValues = {}
     if score=="all" or score=="SFSC":
         print("Computing SFSC")
-        scoreValues["SFSC"] = sfsc(particles=particles, masks=masks, gf=gaussian_filter_sigma, mask_cutoff=mask_cutoff)
+        scoreValues["SFSC"] = str(sfsc(particles=particles, masks=masks, gf=gaussian_filter_sigma, mask_cutoff=mask_cutoff))
     
     ########### SFSC ###########
     if score=="all" or score!="SFSC":
+        if score=="all":
+            print("Computing gPC, amPC, FPC, FPCmw, CCC, amCCC, cPC, oPC, OS, gNSD, cNSD, oNSD, amNSD, DSD, gMI, NMI, cMI, oMI, amMI")
+        else:
+            print("Computing", score)
+
         cluster_mask = None
         if score in ["all", "amPC", "amNSD", "amMI", "amCCC"]:
             cluster_mask = cluster_average_mask(particles, masks)
@@ -347,7 +354,6 @@ def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_
             num_of_pairs = minimum_num_of_paris
         else:
             num_of_pairs = int(possible_pair_num*0.10)
-        
         print("Num of pairs: ", num_of_pairs)
         
         random.shuffle(pairs)
@@ -385,14 +391,14 @@ def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_
             if score in ["all", "gPC"]:
                 if "gPC" not in scoreValues:
                     scoreValues["gPC"] = []
-                if i==0:    print("Computing gPC")
+                #if i==0:    print("Computing gPC")
                 scoreValues["gPC"].append(pearson_correlation(vr_1_gf, vr_2_gf))
 
             ########### amPC ###########
             if score in ["all", "amPC"]:
                 if "amPC" not in scoreValues:
                     scoreValues["amPC"] = []
-                if i==0:    print("Computing amPC")
+                #if i==0:    print("Computing amPC")
                 scoreValues["amPC"].append(pearson_correlation(vr_1_gf[cluster_mask], vr_2_gf[cluster_mask]))
 
             if score in ["all", "FPC", "FPCmw", "CCC", "amCCC"]:
@@ -402,14 +408,14 @@ def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_
                 if score in ["all", "FPC"]:
                     if "FPC" not in scoreValues:
                         scoreValues["FPC"] = []
-                    if i==0:    print("Computing FPC")
+                    #if i==0:    print("Computing FPC")
                     scoreValues["FPC"].append(pearson_correlation(vr_1_f.real.flatten(), vr_2_f.real.flatten()))
                 
                 ########### FPCmw ###########
                 if score in ["all", "FPCmw"]:
                     if "FPCmw" not in scoreValues:
                         scoreValues["FPCmw"] = []
-                    if i==0:    print("Computing FPCmw")
+                    #if i==0:    print("Computing FPCmw")
                     if masks_logical_and_flag:
                         scoreValues["FPCmw"].append(0.0)
                     else:
@@ -426,7 +432,7 @@ def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_
                     if score in ["all", "CCC"]:
                         vr_1_if_norm = zeroMeanUnitStdNormalize(vr_1_if.copy())
                         vr_2_if_norm = zeroMeanUnitStdNormalize(vr_2_if.copy())
-                        if i==0:    print("Computing CCC")
+                        #if i==0:    print("Computing CCC")
                         if "CCC" not in scoreValues:
                             scoreValues["CCC"] = []
                         scoreValues["CCC"].append(pearson_correlation(vr_1_if_norm.flatten(), vr_2_if_norm.flatten()))
@@ -439,7 +445,7 @@ def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_
                         vr_2_if = vr_2_if[cluster_mask]
                         vr_1_if_norm = zeroMeanUnitStdNormalize(vr_1_if.copy())
                         vr_2_if_norm = zeroMeanUnitStdNormalize(vr_2_if.copy())
-                        if i==0:    print("Computing amCCC")
+                        #if i==0:    print("Computing amCCC")
                         if "amCCC" not in scoreValues:
                             scoreValues["amCCC"] = []
                         scoreValues["amCCC"].append(pearson_correlation(vr_1_if_norm, vr_2_if_norm))
@@ -463,7 +469,7 @@ def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_
             if score in ["all", "cPC"]:
                 if "cPC" not in scoreValues:
                     scoreValues["cPC"] = []
-                if i==0:    print("Computing cPC")
+                #if i==0:    print("Computing cPC")
                 if real_masks_or.sum()<2:
                     scoreValues["cPC"].append(0.0)
                 else:
@@ -473,7 +479,7 @@ def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_
             if score in ["all", "oPC"]:
                 if "oPC" not in scoreValues:
                     scoreValues["oPC"] = []
-                if i==0:    print("Computing oPC")
+                #if i==0:    print("Computing oPC")
                 if real_masks_and.sum()<2:
                     scoreValues["oPC"].append(0.0)
                 else:
@@ -483,85 +489,149 @@ def compute_scores(particles, masks, gaussian_filter_sigma=0, score="all", mask_
             if score in ["all", "OS"]:
                 if "OS" not in scoreValues:
                     scoreValues["OS"] = []
-                if i==0:    print("Computing OS")
+                #if i==0:    print("Computing OS")
                 scoreValues["OS"].append(float(N.logical_and(vr_1_mask, vr_2_mask).sum())/min(vr_1_mask.sum(), vr_2_mask.sum()))
 
             ########### gNSD ###########
             if score in ["all", "gNSD"]:
                 if "gNSD" not in scoreValues:
                     scoreValues["gNSD"] = []
-                if i==0:    print("Computing gNSD")
+                #if i==0:    print("Computing gNSD")
                 scoreValues['gNSD'].append(((vr_1_gf - vr_2_gf)**2).mean())
             
             ########### cNSD ###########
             if score in ["all", "cNSD"]:
                 if "cNSD" not in scoreValues:
                     scoreValues["cNSD"] = []
-                if i==0:    print("Computing cNSD")
+                #if i==0:    print("Computing cNSD")
                 scoreValues['cNSD'].append(((vr_1_gf.flatten()[real_masks_or] - vr_2_gf.flatten()[real_masks_or])**2).mean())
             
             ########### oNSD ###########
             if score in ["all", "oNSD"]:
                 if "oNSD" not in scoreValues:
                     scoreValues["oNSD"] = []
-                if i==0:    print("Computing oNSD")
+                #if i==0:    print("Computing oNSD")
                 scoreValues['oNSD'].append(((vr_1_gf.flatten()[real_masks_and] - vr_2_gf.flatten()[real_masks_and])**2).mean())
             
             ########### amNSD ###########
             if score in ["all", "amNSD"]:
                 if "amNSD" not in scoreValues:
                     scoreValues["amNSD"] = []
-                if i==0:    print("Computing amNSD")
+                #if i==0:    print("Computing amNSD")
                 scoreValues['amNSD'].append(((vr_1_gf[cluster_mask] - vr_2_gf[cluster_mask])**2).mean())
 
             ########### DSD ###########
             if score in ["all", "DSD"]:
                 if "DSD" not in scoreValues:
                     scoreValues["DSD"] = []
-                if i==0:    print("Computing DSD")
+                #if i==0:    print("Computing DSD")
                 scoreValues['DSD'].append(dsd(vr_1_gf.copy(), vr_2_gf.copy()))
             
             ########### gMI ###########
             if score in ["all", "gMI"]:
                 if "gMI" not in scoreValues:
                     scoreValues["gMI"] = []
-                if i==0:    print("Computing gMI")
+                #if i==0:    print("Computing gMI")
                 scoreValues['gMI'].append(MI(vr_1_gf.copy(), vr_2_gf.copy(), mask_array=None, normalised=False))
 
             ########### NMI ###########
             if score in ["all", "NMI"]:
                 if "NMI" not in scoreValues:
                     scoreValues["NMI"] = []
-                if i==0:    print("Computing NMI")
+                #if i==0:    print("Computing NMI")
                 scoreValues['NMI'].append(MI(vr_1_gf.copy(), vr_2_gf.copy(), mask_array=None, normalised=True))
 
             ########### cMI ###########
             if score in ["all", "cMI"]:
                 if "cMI" not in scoreValues:
                     scoreValues["cMI"] = []
-                if i==0:    print("Computing cMI")
+                #if i==0:    print("Computing cMI")
                 scoreValues['cMI'].append(MI(vr_1_gf.copy(), vr_2_gf.copy(), mask_array=N.logical_or(vr_1_mask, vr_2_mask), normalised=False))
 
             ########### oMI ###########
             if score in ["all", "oMI"]:
                 if "oMI" not in scoreValues:
                     scoreValues["oMI"] = []
-                if i==0:    print("Computing oMI")
+                #if i==0:    print("Computing oMI")
                 scoreValues['oMI'].append(MI(vr_1_gf.copy(), vr_2_gf.copy(), mask_array=N.logical_and(vr_1_mask, vr_2_mask), normalised=False))
 
             ########### amMI ###########
             if score in ["all", "amMI"]:
                 if "amMI" not in scoreValues:
                     scoreValues["amMI"] = []
-                if i==0:    print("Computing amMI")
+                #if i==0:    print("Computing amMI")
                 scoreValues['amMI'].append(MI(vr_1_gf.copy(), vr_2_gf.copy(), mask_array=cluster_mask, normalised=False))
 
-            print(i, end="\r")
+            print("Number of pairs computed:", i, end="\r")
             del vr_1, vr_2, vm_1, vm_2, vr_1_gf, vr_2_gf, threshold_i, vr_1_mask, vr_2_mask, real_masks_or, real_masks_and, masks_logical_and
             gc.collect()
 
     for score in scoreValues.keys():
         if score!="SFSC":
-            scoreValues[score] = N.mean(scoreValues[score])
+            scoreValues[score] = str(N.mean(scoreValues[score]))
 
-    return scoreValues
+    with open(outFile, "w") as f:
+        json.dump(scoreValues, f, indent=3)
+
+    del scoreValues
+    gc.collect()
+
+def main(argv):
+    try:
+        opts, args = getopt.getopt(argv,"hp:m:o:s:g:",["particles_txtfile=","masks_txtfile=", "output_jsonfile=", "scoring_function=", "gaussian_filter_sigma="])
+    except getopt.GetoptError:
+        print("python scoring_functions.py -p <particles_file> -m <masks_file> -o <output_file> -s <scoring_function> -g <gaussian_filter_sigma>")
+        print("Note: -p and -m arguements are necessary\n")
+        sys.exit(2)
+    gaussian_filter = 0
+    particlesFile = ''
+    masksFile = ''
+    outputFile = 'scoreValues.json'
+    scoring_function = "all"
+    for opt, arg in opts:
+        if opt == '-h':
+            print("python scoring_functions.py -p <particles_file> -m <masks_file> -o <output_file> -s <scoring_function> -g <gaussian_filter_sigma>")
+            print("Note: -p and -m arguements are necessary\n")
+            sys.exit()
+        elif opt in ("-p", "--particles_txtfile"):
+            particlesFile = arg
+        elif opt in ("-m", "--masks_txtfile"):
+            masksFile = arg
+        elif opt in ("-o", "--output_jsonfile"):
+            outputFile = arg
+        elif opt in ("-g", "--gaussian_filter_sigma"):
+            gaussian_filter = int(arg)
+        elif opt in ("-s", "--scoring_function"):
+            scoring_function = arg
+    print("Input particles file is", particlesFile)
+    print("Input masks file is", masksFile)
+    print("Output file is", outputFile)
+    print("Gaussian filter =", gaussian_filter)
+    print("Scoring function =", scoring_function)
+
+    if scoring_function not in ["all", "SFSC", "gPC", "amPC", "FPC", "FPCmw", "CCC", "amCCC", "cPC", "oPC", "OS", "gNSD", "cNSD", "oNSD", "amNSD", "DSD", "gMI", "NMI", "cMI", "oMI", "amMI"]:
+        print("\nError: Enter valid -s arguement")
+        print("Choose from [all, gPC, amPC, FPC, FPCmw, CCC, amCCC, cPC, oPC, OS, gNSD, cNSD, oNSD, amNSD, DSD, gMI, NMI, cMI, oMI, amMI]\n")
+        sys.exit()
+
+    f = open(particlesFile, 'r')
+    particles = f.readlines()
+    for i, p in enumerate(particles):
+        if p[-1]=="\n":
+            particles[i] = p[:-1]
+    f = open(masksFile, 'r')
+    masks = f.readlines()
+    for i, m in enumerate(masks):
+        if m[-1]=="\n":
+            masks[i] = m[:-1]
+
+    if len(particles)!=len(masks):
+        print("\nError: Number of particles is not equal to number of masks")
+
+    print("\nComputing Scores ...\n")
+    compute_scores(particles=particles, masks=masks, outFile=outputFile, gaussian_filter_sigma=gaussian_filter, score=scoring_function)
+
+    print("Computation complete. Scores saved in", outputFile)
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
