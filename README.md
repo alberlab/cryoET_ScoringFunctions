@@ -12,10 +12,10 @@ Code to compute quality of cluster of 3D subtomograms based on different scoring
 The file scoring_functions.py compute score value from set of subtomograms i.e. single cluster.
 Just download the scoring_functions.py code and run it directly in terminal as follows:
 
-```
+```console
 python scoring_functions.py -p <particles_txtfile> -m <masks_txtfile> -g <Gaussian_filter_sigma> -s <scoring_function>
 ```
-Arguements:
+Arguments:
 
 -p: txt file containing paths to subtomograms in the cluster
 
@@ -27,3 +27,14 @@ Arguements:
 
 Options for scoring funtions: [SFSC, gPC, amPC, FPC, FPCmw, CCC, amCCC, cPC, oPC, OS, gNSD, cNSD, oNSD, amNSD, DSD, gMI, NMI, cMI, oMI, amMI]
 
+
+#### Test:
+```console
+python scoring_functions.py -p ./test/particles.txt -m ./test/masks.txt
+```
+This command computes all scoring functions and without any gaussian filtering
+
+Terminal Output
+```console
+
+```
