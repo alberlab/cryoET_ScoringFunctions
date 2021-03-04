@@ -1,20 +1,9 @@
-import pickle
 import mrc, os, gc, random, math, copy
 import numpy as N
 import numpy.fft as NF
 from random import randrange
 from scipy.stats import pearsonr
 from scipy.ndimage.filters import gaussian_filter as SNFG
-
-import json
-with open("4/20/0.001/30/2.0/data_config.json") as f:
-    dj = json.load(f)
-
-particles = []
-masks = []
-for i in range(100):
-    particles.append(dj[i]["subtomogram"])
-    masks.append(dj[i]["mask"])
 
 def get_mrc(filename):
     assert os.path.isfile(filename)
