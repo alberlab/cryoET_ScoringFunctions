@@ -11,4 +11,4 @@ Code to compute quality of cluster of 3D subtomograms based on different scoring
 #### How to run:
 Just download the scoring_functions.py code and run it directly in terminal as follows:
 
-'python scoring_functions.py -p particles.txt -m masks.txt -gf 1 -s SFSC'
+**python scoring_functions.py -p particles.txt -m masks.txt -gf 1 -s SFSC
