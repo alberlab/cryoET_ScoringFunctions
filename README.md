@@ -36,5 +36,18 @@ This command computes all scoring functions and without any gaussian filtering
 
 Terminal Output
 ```console
+Input particles file is ./test/particles.txt
+Input masks file is ./test/masks.txt
+Output file is scoreValues.json
+Gaussian filter = 0
+Scoring function = all
 
+Computing Scores ...
+
+Computing SFSC
+Number of subtomograms loaded: 4
+
+Computing gPC, amPC, FPC, FPCmw, CCC, amCCC, cPC, oPC, OS, gNSD, cNSD, oNSD, amNSD, DSD, gMI, NMI, cMI, oMI, amMI
+Num of pairs:  10
+Computation complete. Scores saved in scoreValues.json
 ```
