@@ -1,5 +1,5 @@
 Code to compute quality of cluster of 3D subtomograms based on different scoring functions. In reference to paper:
-##### Singla, J., White, K. L., Stevens, R. C., & Alber, F. (2020). Assessment of scoring functions to rank the quality of 3D subtomogram clusters from cryo-electron tomography. bioRxiv.
+#### Singla, J., White, K. L., Stevens, R. C., & Alber, F. (2020). Assessment of scoring functions to rank the quality of 3D subtomogram clusters from cryo-electron tomography. bioRxiv.
 
 
 #### Requirements:
@@ -51,3 +51,31 @@ Computing gPC, amPC, FPC, FPCmw, CCC, amCCC, cPC, oPC, OS, gNSD, cNSD, oNSD, amN
 Num of pairs:  10
 Computation complete. Scores saved in scoreValues.json
 ```
+The scoreValues.json file for the test case should generate following output:
+```console
+{
+   "SFSC": "16.093929761606248",
+   "gPC": "0.0013171162630650978",
+   "amPC": "-0.0068229129113881555",
+   "FPC": "0.000647349118236025",
+   "FPCmw": "0.0007090374765983809",
+   "CCC": "0.0012697790749313046",
+   "amCCC": "-0.005472779891763771",
+   "cPC": "-0.6530250739866645",
+   "oPC": "0.012505335839565724",
+   "OS": "0.07012576783831416",
+   "gNSD": "1.9973657",
+   "cNSD": "5.1596947",
+   "oNSD": "0.32142648",
+   "amNSD": "1.9939632",
+   "DSD": "0.03239156749814856",
+   "gMI": "0.00039801477849872314",
+   "NMI": "1.0000653470894274",
+   "cMI": "0.4597008522438511",
+   "oMI": "0.042851308475981856",
+   "amMI": "0.18753084696800254"
+}
+```
+
+Note:
+In the paper the scoring functions gNSD, cNSD, oNSD, amNSD computed over a set of clusters are minmax normalized and subtracted from 1. But here the code only outputs the value of gSD, cSD, oSD and amSD. But the names are kept same to avoid confusion.
