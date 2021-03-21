@@ -1,6 +1,6 @@
 Code to compute quality of cluster of 3D subtomograms based on different scoring functions. In reference to paper:
-### Singla, J., White, K. L., Stevens, R. C., & Alber, F. (2020). Assessment of scoring functions to rank the quality of 3D subtomogram clusters from cryo-electron tomography. bioRxiv.
-### [Paper link](https://www.biorxiv.org/content/10.1101/2020.06.23.125823v2.article-metrics)
+### Singla, J., White, K. L., Stevens, R. C., & Alber, F. (2020). Assessment of scoring functions to rank the quality of 3D subtomogram clusters from cryo-electron tomography. Journal of Structural Biology.
+### [Paper link](https://www.sciencedirect.com/science/article/abs/pii/S1047847721000320?via%3Dihub)
 
 ### Requirements:
 1. Python 3
